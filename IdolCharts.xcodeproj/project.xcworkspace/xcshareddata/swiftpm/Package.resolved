@@ -32,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/banjun/SwiftSparql",
       "state" : {
-        "revision" : "640098cd6b3fcc40048dbcf948f3ad01229eb020",
-        "version" : "0.11.0"
+        "revision" : "c44e07695b60cc42bf020f8bdbe86b7d1c039bb2",
+        "version" : "0.12.0"
       }
     }
   ],

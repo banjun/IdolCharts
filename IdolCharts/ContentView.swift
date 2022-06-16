@@ -48,13 +48,7 @@ let query = SelectQuery(
     limit: 100)
 
 func fetch() async throws -> [IdolHeight] {
-    try await withCheckedThrowingContinuation { c in
-        Request(endpoint: URL(string: "https://sparql.crssnky.xyz/spql/imas/query")!, select: query)
-            .fetch()
-            .onComplete {
-                c.resume(with: $0)
-            }
-    }
+    try await Request(endpoint: URL(string: "https://sparql.crssnky.xyz/spql/imas/query")!, select: query).fetch()
 }
 
 struct ContentView: View {
