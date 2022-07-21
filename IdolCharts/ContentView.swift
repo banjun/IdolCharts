@@ -8,6 +8,7 @@
 import SwiftUI
 import Charts
 import SwiftSparql
+import Combine
 
 struct IdolHeight: Codable {
     var name: String
@@ -58,26 +59,39 @@ func fetch(brand: Brand) async throws -> [IdolHeight] {
     return try await Request(endpoint: URL(string: "https://sparql.crssnky.xyz/spql/imas/query")!, select: query).fetch()
 }
 
+final class Model: ObservableObject {
+    @Published var brand: Brand = .ShinyColors
+    @Published var idols: [IdolHeight] = []
+
+    private var cancellables: Set<AnyCancellable> = []
+
+    init() {
+        $brand.prepend(brand).sink { [unowned self] _ in
+            self.fetch()
+        }.store(in: &cancellables)
+    }
+
+    func fetch() {
+        Task {
+            let idols = try await IdolCharts.fetch(brand: brand)
+            await MainActor.run {
+                self.idols = idols
+            }
+        }
+    }
+}
+
 struct ContentView: View {
-    @State var idols: [IdolHeight] = []
-    @State var brand: Brand = .ShinyColors
+    @StateObject var model: Model = .init()
 
     var body: some View {
         VStack {
-            Picker("Brand", selection: $brand) {
+            Picker("Brand", selection: $model.brand) {
                 ForEach(Brand.allCases) {
                     Text($0.rawValue)
                 }
-            }.onChange(of: brand) { brand in
-                Task {
-                    self.idols = try await fetch(brand: brand)
-                }
             }
-            IdolHeightView(idols: idols)
-        }.onAppear {
-            Task {
-                self.idols = try await fetch(brand: brand)
-            }
+            IdolHeightView(idols: model.idols)
         }
     }
 }
