@@ -66,7 +66,7 @@ struct ContentView: View {
                 .chartXAxis {
                     AxisMarks { value in
                         let text = idols[value.index].name
-                        AxisValueLabel(text.reduce(into: "") {$0 += "\n" + String($1)}, collisionResolution: .greedy, orientation: .angle(.degrees(45)))
+                        AxisValueLabel(text, orientation: .vertical)
                     }
                 }
 //                .frame(minWidth: 1200)
