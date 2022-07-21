@@ -25,57 +25,82 @@ extension IdolHeight {
             alpha: 1)}
 }
 
-let varS = Var("s")
-let varName = Var("name")
-let varHeight = Var("height")
-let varColor = Var("color")
-let varAge = Var("age")
+enum Brand: String, CaseIterable, Identifiable {
+    var id: Self { self }
+    case _765AS = "765AS"
+    case CinderellaGirls
+    case MillionLive
+    case SideM
+    case ShinyColors
+}
 
-let query = SelectQuery(
-    where: WhereClause(patterns:
-        subject(varS)
-            .rdfTypeIsImasIdol()
-            .imasBrand(is: .literal("ShinyColors", lang: "en"))
-            .rdfsLabel(is: varName)
-            .schemaHeight(is: varHeight)
-            .optional { $0
-                .imasColor(is: varColor)
-                .foafAge(is: varAge)
-            }
-            .triples),
-//    having: [.logical(varHeight <= 149)],
-    order: [.by(varHeight)],
-    limit: 100)
-
-func fetch() async throws -> [IdolHeight] {
-    try await Request(endpoint: URL(string: "https://sparql.crssnky.xyz/spql/imas/query")!, select: query).fetch()
+func fetch(brand: Brand) async throws -> [IdolHeight] {
+    let varS = Var("s")
+    let varName = Var("name")
+    let varHeight = Var("height")
+    let varColor = Var("color")
+    let varAge = Var("age")
+    let query = SelectQuery(
+        where: WhereClause(patterns:
+            subject(varS)
+                .rdfTypeIsImasIdol()
+                .imasBrand(is: .literal(brand.rawValue, lang: "en"))
+                .rdfsLabel(is: varName)
+                .schemaHeight(is: varHeight)
+                .optional { $0
+                    .imasColor(is: varColor)
+                    .foafAge(is: varAge)
+                }
+                .triples),
+    //    having: [.logical(varHeight <= 149)],
+        order: [.by(varHeight)],
+        limit: 52)
+    return try await Request(endpoint: URL(string: "https://sparql.crssnky.xyz/spql/imas/query")!, select: query).fetch()
 }
 
 struct ContentView: View {
     @State var idols: [IdolHeight] = []
+    @State var brand: Brand = .ShinyColors
 
     var body: some View {
         VStack {
-//            ScrollView(.horizontal) {
-                Chart(idols, id: \.name) { idol in
-                    BarMark(
-                        x: .value("name", idol.name),
-                        y: .value("height", idol.height))
-                    .foregroundStyle(idol.nsColor.map {Color(nsColor :$0)} ?? Color.black)
+            Picker("Brand", selection: $brand) {
+                ForEach(Brand.allCases) {
+                    Text($0.rawValue)
                 }
-                .chartXAxis {
-                    AxisMarks { value in
-                        let text = idols[value.index].name
-                        AxisValueLabel(text, orientation: .vertical)
-                    }
+            }.onChange(of: brand) { brand in
+                Task {
+                    self.idols = try await fetch(brand: brand)
                 }
-//                .frame(minWidth: 1200)
-//            }
+            }
+            IdolHeightView(idols: idols)
         }.onAppear {
             Task {
-                self.idols = try await fetch()
+                self.idols = try await fetch(brand: brand)
             }
         }
+    }
+}
+
+struct IdolHeightView: View {
+    var idols: [IdolHeight] = []
+
+    var body: some View {
+//        ScrollView(.horizontal) {
+            Chart(idols, id: \.name) { idol in
+                BarMark(
+                    x: .value("name", idol.name),
+                    y: .value("height", idol.height))
+                .foregroundStyle(idol.nsColor.map {Color(nsColor :$0)} ?? Color.black)
+            }
+            .chartXAxis {
+                AxisMarks { value in
+                    let text = idols[value.index].name
+                    AxisValueLabel(text, orientation: .vertical)
+                }
+            }
+            .frame(minWidth: 512)
+//        }
     }
 }
 
