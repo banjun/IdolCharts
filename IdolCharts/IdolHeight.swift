@@ -1,6 +1,6 @@
 import Foundation
-import AppKit
 import SwiftSparql
+import CoreGraphics
 
 struct IdolHeight: Codable {
     var name: String
@@ -8,15 +8,17 @@ struct IdolHeight: Codable {
     var color: String?
     var age: String?
 }
+
 extension IdolHeight {
-    var nsColor: NSColor? {
+    var cgColor: CGColor? {
         guard let hex = (color.flatMap {Int($0, radix: 16)}) else { return nil }
-        return NSColor(
-            calibratedRed: CGFloat(hex >> 16 & 0xff) / 255,
-            green: CGFloat(hex >> 8 & 0xff) / 255,
-            blue: CGFloat(hex >> 0 & 0xff) / 255,
-            alpha: 1)}
+        return CGColor(srgbRed: CGFloat(hex >> 16 & 0xff) / 255,
+                       green: CGFloat(hex >> 8 & 0xff) / 255,
+                       blue: CGFloat(hex >> 0 & 0xff) / 255,
+                       alpha: 1)
+    }
 }
+
 
 func fetch(brand: Brand) async throws -> [IdolHeight] {
     let varS = Var("s")
@@ -38,6 +40,6 @@ func fetch(brand: Brand) async throws -> [IdolHeight] {
                 .triples),
     //    having: [.logical(varHeight <= 149)],
         order: [.by(varHeight)],
-        limit: 52)
+        limit: 1000)
     return try await Request(endpoint: URL(string: "https://sparql.crssnky.xyz/spql/imas/query")!, select: query).fetch()
 }

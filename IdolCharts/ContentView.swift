@@ -17,7 +17,7 @@ final class Model: ObservableObject {
     func fetch() {
         Task {
             let idols = try await IdolCharts.fetch(brand: brand)
-            await MainActor.run {
+            Task { @MainActor in
                 self.idols = idols
             }
         }
@@ -36,18 +36,19 @@ struct ContentView: View {
             }
             .padding()
             IdolHeightView(idols: model.idols)
-                .padding()
         }
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        VStack {
-            ForEach(Brand.allCases) {
-                ContentView(model: .init(brand: $0))
+        ScrollView(.vertical) {
+            VStack {
+                ForEach(Brand.allCases) {
+                    ContentView(model: .init(brand: $0))
+                }
+                .frame(minHeight: 400)
             }
         }
-        .frame(minWidth: 800, minHeight: 400*5)
     }
 }

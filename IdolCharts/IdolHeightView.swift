@@ -5,12 +5,17 @@ struct IdolHeightView: View {
     var idols: [IdolHeight] = []
 
     var body: some View {
-//        ScrollView(.horizontal) {
+        ScrollView(.horizontal, showsIndicators: false) {
             Chart(idols, id: \.name) { idol in
+                let color = idol.cgColor.map {Color(cgColor: $0)} ?? Color.clear
                 BarMark(
                     x: .value("name", idol.name),
                     y: .value("height", idol.height))
-                .foregroundStyle(idol.nsColor.map {Color(nsColor :$0)} ?? Color.black)
+                .foregroundStyle(LinearGradient(colors: [color.opacity(0.75), color], startPoint: .init(x: 0, y: 1), endPoint: .init(x: 0, y: 0.25)))
+                .cornerRadius(4)
+                .annotation(position: .top) {
+                    Text(String(Int(idol.height))).font(.system(size: 8))
+                }
             }
             .chartXAxis {
                 AxisMarks { value in
@@ -18,8 +23,9 @@ struct IdolHeightView: View {
                     AxisValueLabel(text, orientation: .vertical)
                 }
             }
-            .frame(minWidth: 512)
-//        }
+            .frame(minWidth: 20 * CGFloat(idols.count))
+            .padding()
+        }
     }
 }
 
@@ -32,6 +38,5 @@ struct IdolHeightView_Previews: PreviewProvider {
             IdolHeight(name: "橘ありす+30", height: 171, color: "666666"),
             IdolHeight(name: "橘ありす+40", height: 181, color: "666666"),
         ])
-        .padding()
     }
 }
