@@ -2,7 +2,7 @@ import Foundation
 import SwiftSparql
 import CoreGraphics
 
-struct IdolHeight: Codable {
+struct IdolHeight: Codable, Hashable {
     var name: String
     var height: Double
     var color: String?
@@ -16,6 +16,18 @@ extension IdolHeight {
                        green: CGFloat(hex >> 8 & 0xff) / 255,
                        blue: CGFloat(hex >> 0 & 0xff) / 255,
                        alpha: 1)
+    }
+}
+import SwiftUI
+extension SwiftUI.Color {
+    init(_ idol: IdolHeight) {
+        self.init(cgColor: idol.cgColor ?? .init(gray: 0.5, alpha: 0.8))
+    }
+}
+import RealityKit
+extension RealityKit.Material.Color {
+    convenience init(_ idol: IdolHeight) {
+        self.init(cgColor: idol.cgColor ?? .init(gray: 0.5, alpha: 0.8))
     }
 }
 
