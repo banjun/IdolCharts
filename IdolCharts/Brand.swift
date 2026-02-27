@@ -9,4 +9,5 @@ enum Brand: String, CaseIterable, Identifiable {
     case ShinyColors
     case Gakuen
     case valiv = "va-liv"
+    case DearlyStars
 }
